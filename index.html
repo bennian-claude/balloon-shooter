@@ -51,9 +51,31 @@
   .rules { font-size: 15px; opacity: 0.9; margin-top: 16px; }
   .rules span { display: inline-block; margin: 4px 8px; padding: 4px 10px; background: rgba(255,255,255,0.15); border-radius: 8px; }
   #shake { position: fixed; inset: 0; pointer-events: none; border: 0 solid rgba(255,0,0,0); transition: border-width 0.1s, border-color 0.1s; z-index: 5; }
+  #introScreen {
+    position: fixed; inset: 0; background: #000;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  #introScreen video {
+    width: 100%; height: 100%; object-fit: contain;
+  }
+  #skipBtn {
+    position: fixed; bottom: 28px; right: 28px;
+    padding: 10px 24px; font-size: 16px; font-weight: 700;
+    border: 2px solid rgba(255,255,255,0.7); border-radius: 999px;
+    background: rgba(0,0,0,0.45); color: #fff; cursor: pointer;
+    z-index: 101; backdrop-filter: blur(6px);
+    transition: background 0.15s;
+  }
+  #skipBtn:hover { background: rgba(0,0,0,0.7); }
 </style>
 </head>
 <body>
+<div id="introScreen">
+  <video id="introVideo" src="intro.mp4" playsinline autoplay muted></video>
+  <button id="skipBtn">跳過 ▶</button>
+</div>
+
 <canvas id="game"></canvas>
 <div id="ui">
   <div id="score">分數: 0</div>
@@ -83,6 +105,32 @@
 </div>
 
 <script>
+// ---- Intro Video ----
+(function() {
+  const introScreen = document.getElementById('introScreen');
+  const introVideo = document.getElementById('introVideo');
+  const skipBtn = document.getElementById('skipBtn');
+
+  function finishIntro() {
+    introVideo.pause();
+    introScreen.classList.add('hidden');
+  }
+
+  introVideo.addEventListener('ended', finishIntro);
+  skipBtn.addEventListener('click', finishIntro);
+
+  // Unmute and replay with sound once user interacts (browser autoplay policy)
+  introScreen.addEventListener('click', () => {
+    if (introVideo.muted) {
+      introVideo.muted = false;
+      introVideo.currentTime = 0;
+      introVideo.play().catch(() => {});
+    }
+  }, { once: true });
+
+  introVideo.play().catch(() => {});
+})();
+
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
